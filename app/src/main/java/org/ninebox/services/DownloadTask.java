@@ -2,6 +2,7 @@ package org.ninebox.services;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 import org.ninebox.db.ThreadDAO;
 import org.ninebox.db.ThreadDAOImpl;
@@ -25,7 +26,7 @@ public class DownloadTask {
     private Context mContext=null;
     private ThreadDAO mThreadDAO;
     private  int mFinished=0;
-    public  boolean isPause;
+    public  boolean isPause=false;
 
 
     public DownloadTask(FileInfo nFileInfo, Context mContext) {
@@ -38,10 +39,10 @@ public class DownloadTask {
 
 
     public void download(){
-
+        ThreadInfo threadInfo = null;
         //读取数据库线程信息
         List<ThreadInfo> threadInfos =mThreadDAO.getThreads(nFileInfo.getUrl());
-        ThreadInfo threadInfo = null;
+
         if (threadInfos.size() ==0){
             //初始化线程信息
             threadInfo  = new ThreadInfo(0,nFileInfo.getUrl(),0,nFileInfo.getLength(),0);
@@ -65,6 +66,7 @@ public class DownloadTask {
 
         @Override
         public void run() {
+
 
             HttpURLConnection conn = null;
 
@@ -91,7 +93,8 @@ public class DownloadTask {
                 Intent  intent = new Intent(DownLoadService.ACTION_UPDATE);
                 mFinished +=mThreadInfo.getFinished();
                 //开始下载
-                if (conn.getResponseCode() ==HttpURLConnection.HTTP_OK){
+
+                if (conn.getResponseCode() ==HttpURLConnection.HTTP_PARTIAL){
                     //读取数据
                     input=conn.getInputStream();
                     byte[] buffer = new byte[1024*4];
@@ -102,14 +105,20 @@ public class DownloadTask {
                         raf.write(buffer,0,len);
                         //把下载的进度广播给Activity
                         mFinished +=len;
+
                         if (System.currentTimeMillis()-time>500) {
+                            Log.i("TAG","下载中：---------------------------------------"+mFinished+"");
+                            Log.i("TAG","总大小：---------------------------------------"+ nFileInfo.getLength()+"");
+                            Log.i("TAG","堕胎：---------------------------------------"+   mFinished * 100 / nFileInfo.getLength()+"");
                             time =System.currentTimeMillis();
                             intent.putExtra("finished", mFinished * 100 / nFileInfo.getLength());
                             mContext.sendBroadcast(intent);
                         }
                         //在暂停时 保存下载进度
                         if (isPause){
+                            Log.i("TAG","暂停时：----------------------"+mThreadInfo.getFinished()+"---------------");
                             mThreadDAO.updateThread(mThreadInfo.getUrl(),mThreadInfo.getId(),mFinished);
+                            Log.i("TAG","暂停后：----------------------"+mThreadInfo.getFinished()+"---------------");
                             return;
                         }
                     }
@@ -127,6 +136,8 @@ public class DownloadTask {
                     input.close();
                     raf.close();
                     conn.disconnect();
+
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

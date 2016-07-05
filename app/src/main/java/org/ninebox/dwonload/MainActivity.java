@@ -1,13 +1,18 @@
 package org.ninebox.dwonload;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import org.ninebox.entities.FileInfo;
@@ -17,10 +22,10 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
 
     private Button  stopButton;
     private Button  downButton;
-    private TextView tvFileName;
+    private ProgressBar mProgresBar;
 
-        private FileInfo fileInfo = new FileInfo("http://dlsw.baidu.com/sw-search-sp/soft/97/17517/Steam_2.10.91.91_Setup.1459840891.exe"
-            ,0 ,"Steam_2.10.91.91_Setup.1459840891.exe",0,0);
+        private FileInfo fileInfo = new FileInfo("http://dota2.dl.wanmei.com/dota2/client/wanmeidota3.2.1.apk"
+            ,0 ,"wanmeidota3.2.1.apk",0,0);
     ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
@@ -41,16 +46,15 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
 
         stopButton = (Button) findViewById(R.id.stopButton);
         downButton = (Button) findViewById(R.id.downButton);
-        tvFileName = (TextView) findViewById(R.id.tvFileNmae);
+        mProgresBar = (ProgressBar) findViewById(R.id.progressBar);
 
         downButton.setOnClickListener(this);
         stopButton.setOnClickListener(this);
 
-        //
-
-
-
-
+        //注册广播接收器
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(DownLoadService.ACTION_UPDATE);
+        registerReceiver(mReceiver,filter);
 
     }
 
@@ -69,7 +73,7 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
                 case R.id.stopButton:
                 {
                 Intent intent = new Intent(MainActivity.this, DownLoadService.class);
-                intent.setAction(DownLoadService.ACTION_START);
+                intent.setAction(DownLoadService.ACTION_STOP);
                 intent.putExtra("fileInfo", fileInfo);
                 startService(intent);
                 break;
@@ -79,4 +83,26 @@ public class MainActivity extends AppCompatActivity  implements View.OnClickList
         }
 
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mReceiver);
+    }
+
+    BroadcastReceiver mReceiver = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            switch (intent.getAction()){
+                case DownLoadService.ACTION_UPDATE:
+                    int finished= intent.getIntExtra("finished",0);
+                Log.i("TAG","----------------------"+finished+"---------------");
+                mProgresBar.setProgress(finished);
+
+                break;
+            }
+        }
+    };
 }

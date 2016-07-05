@@ -1,9 +1,7 @@
 package org.ninebox.services;
 
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.os.Binder;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
@@ -17,7 +15,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -31,6 +28,7 @@ public class DownLoadService extends Service {
     public  static final  String  ACTION_STOP ="ACTION_STOP";
     public  static final  String  ACTION_UPDATE ="ACTION_UPDATE";
    public  static final  String  FILE_PATH = Environment.getExternalStorageDirectory().getAbsolutePath()+"/downloads/";
+
   //   public final  String  FILE_PATH= getCacheDir().getPath();
 
     public  String getFilePath() {
@@ -38,6 +36,8 @@ public class DownLoadService extends Service {
     }
 
     public  static final  int  MSG_INIT =1;
+    private DownloadTask mTask=null;
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (ACTION_START.equals(intent.getAction()))
@@ -51,7 +51,9 @@ public class DownLoadService extends Service {
         {
             FileInfo  fileInfo = (FileInfo) intent.getSerializableExtra("fileInfo");
             Log.i("TAG",fileInfo.toString());
-
+           if (mTask!=null){
+               mTask.isPause=true;
+           }
         }
         return super.onStartCommand(intent, flags, startId);
     }
@@ -89,6 +91,7 @@ public class DownLoadService extends Service {
                 if (con.getResponseCode()== HttpsURLConnection.HTTP_OK)
                 {
                     length = con.getContentLength();
+
                 }else if(length<=0){
                     return;
                 }
@@ -109,6 +112,7 @@ public class DownLoadService extends Service {
                 //线程和service.activity交互是使用handle
                 mHander.obtainMessage(MSG_INIT,mFileInfo).sendToTarget();
 
+
             } catch (Exception e) {
                 e.printStackTrace();
             }finally {
@@ -116,6 +120,7 @@ public class DownLoadService extends Service {
                 try {
                     mRFile.close();
                     con.disconnect();
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -133,6 +138,9 @@ public class DownLoadService extends Service {
                  case MSG_INIT:
                     FileInfo fileInfo = (FileInfo) msg.obj;
                      Log.i("TAG",fileInfo.toString());
+                     //启动下载任务
+                     mTask = new DownloadTask(fileInfo,DownLoadService.this);
+                     mTask.download();
                  break;
              }
          }

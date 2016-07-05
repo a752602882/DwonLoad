@@ -9,17 +9,19 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="org.ninebox.dwonload.MainActivity">
 
-    <TextView
-        android:id="@+id/tvFileNmae"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!" />
+   <ProgressBar
+       android:id="@+id/progressBar"
+       style="?android:attr/progressBarStyleHorizontal"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:max="100"
+       />
     <Button
         android:id="@+id/stopButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="停止"
-        android:layout_below="@+id/tvFileNmae"
+        android:layout_below="@+id/progressBar"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
 
@@ -34,4 +36,5 @@
         android:layout_alignBottom="@+id/stopButton"
         android:layout_toLeftOf="@+id/stopButton"
         android:layout_toStartOf="@+id/stopButton" />
+
 </RelativeLayout>
