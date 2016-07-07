@@ -9,32 +9,10 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="org.ninebox.dwonload.MainActivity">
 
-   <ProgressBar
-       android:id="@+id/progressBar"
-       style="?android:attr/progressBarStyleHorizontal"
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:max="100"
-       />
-    <Button
-        android:id="@+id/stopButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="停止"
-        android:layout_below="@+id/progressBar"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-
-        android:layout_marginTop="38dp"
-       />
-
-    <Button
-        android:id="@+id/downButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="下载"
-        android:layout_alignBottom="@+id/stopButton"
-        android:layout_toLeftOf="@+id/stopButton"
-        android:layout_toStartOf="@+id/stopButton" />
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    </ListView>
 
 </RelativeLayout>
